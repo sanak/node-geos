@@ -1,7 +1,7 @@
 {print} = require "util"
 _spawn = (require "child_process").spawn
 
-coffeeBin = "./node_modules/coffee-script/bin/coffee"
+coffeeBin = "./node_modules/coffeescript/bin/coffee"
 vows = "./node_modules/vows/bin/vows"
 nodeGyp = "./node_modules/node-gyp/bin/node-gyp.js"
 

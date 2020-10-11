@@ -39,13 +39,13 @@
     "url": "http://github.com/kashif/node-geos/issues"
   },
   "scripts": {
-    "install": "./node_modules/coffee-script/bin/cake install",
+    "install": "./node_modules/coffeescript/bin/cake install",
     "test": "vows --spec"
   },
   "gypfile": true,
   "main": "./lib",
   "dependencies": {
-    "coffee-script": "*",
+    "coffeescript": "*",
     "node-gyp": ">=0.12.1"
   },
   "devDependencies": {
