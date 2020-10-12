@@ -40,13 +40,17 @@
   },
   "scripts": {
     "install": "./node_modules/coffeescript/bin/cake install",
-    "test": "vows --spec"
+    "test": "./node_modules/coffeescript/bin/cake test",
+    "binary": "./node_modules/coffeescript/bin/cake binary",
+    "build": "./node_modules/coffeescript/bin/cake build",
+    "clean": "./node_modules/coffeescript/bin/cake clean"
   },
   "gypfile": true,
   "main": "./lib",
   "dependencies": {
     "coffeescript": "*",
-    "node-gyp": ">=0.12.1"
+    "node-gyp": "3.8.0",
+    "mkdirp": "0.5.5"
   },
   "devDependencies": {
     "vows": ">=0.7.0"

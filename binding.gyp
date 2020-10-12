@@ -26,7 +26,7 @@
         }],
         ['OS=="mac"', {
           'xcode_settings': {
-            'MACOSX_DEPLOYMENT_TARGET': '10.8',
+            'MACOSX_DEPLOYMENT_TARGET': '10.9',
             'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
             'GCC_ENABLE_CPP_RTTI': 'YES',
             'OTHER_CFLAGS': [
