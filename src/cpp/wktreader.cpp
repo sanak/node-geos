@@ -53,7 +53,11 @@ void WKTReader::Read(const FunctionCallbackInfo<Value>& args)
 
     WKTReader* reader = ObjectWrap::Unwrap<WKTReader>(args.This());
     try {
+#if GEOS_VERSION_MAJOR == 3 && GEOS_VERSION_MINOR <= 6
         geos::geom::Geometry* geom = reader->_reader->read(*String::Utf8Value(args[0]->ToString()));
+#else
+        geos::geom::Geometry* geom = reader->_reader->read(*String::Utf8Value(args[0]->ToString())).get();
+#endif
         args.GetReturnValue().Set(Geometry::New(geom));
     } catch (geos::io::ParseException e) {
         isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, e.what())));

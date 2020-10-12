@@ -1,15 +1,27 @@
 #include "geometryfactory.hpp"
 
 GeometryFactory::GeometryFactory() {
+#if GEOS_VERSION_MAJOR == 3 && GEOS_VERSION_MINOR <= 6
     _factory = new geos::geom::GeometryFactory();
+#else
+    _factory = geos::geom::GeometryFactory::create().get();
+#endif
 }
 
 GeometryFactory::GeometryFactory(const geos::geom::PrecisionModel *pm) {
+#if GEOS_VERSION_MAJOR == 3 && GEOS_VERSION_MINOR <= 6
     _factory = new geos::geom::GeometryFactory(pm);
+#else
+    _factory = geos::geom::GeometryFactory::create(pm).get();
+#endif
 }
 
 GeometryFactory::GeometryFactory(const geos::geom::PrecisionModel *pm, int newSRID) {
+#if GEOS_VERSION_MAJOR == 3 && GEOS_VERSION_MINOR <= 6
     _factory = new geos::geom::GeometryFactory(pm, newSRID);
+#else
+    _factory = geos::geom::GeometryFactory::create(pm, newSRID).get();
+#endif
 }
 
 GeometryFactory::~GeometryFactory() {}

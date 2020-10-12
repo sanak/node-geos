@@ -57,7 +57,11 @@ void WKBReader::ReadHEX(const FunctionCallbackInfo<Value>& args)
     std::string str = std::string(*hex);
     std::istringstream is( str );
     try {
+#if GEOS_VERSION_MAJOR == 3 && GEOS_VERSION_MINOR <= 6
         geos::geom::Geometry* geom = reader->_reader->readHEX(is);
+#else
+        geos::geom::Geometry* geom = reader->_reader->readHEX(is).get();
+#endif
         args.GetReturnValue().Set(Geometry::New(geom));
     } catch (geos::io::ParseException e) {
         isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, e.what())));

@@ -1,6 +1,7 @@
 #ifndef WKTREADER_HPP
 #define WKTREADER_HPP
 
+#include <geos/version.h>
 #include <geos/io/WKTReader.h>
 #include <geos/io/ParseException.h>
 

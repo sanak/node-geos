@@ -2,6 +2,7 @@
 #define GEOMETRY_HPP
 
 #include <uv.h>
+#include <geos/version.h>
 #include <geos/geom/Geometry.h>
 #include <geos/util/GEOSException.h>
 #include "binding.hpp"
@@ -145,7 +146,7 @@
         }                                                                               \
     }
 
-
+#if GEOS_VERSION_MAJOR == 3 && GEOS_VERSION_MINOR <= 6
 #define NODE_GEOS_UNARY_TOPOLOGIC_FUNCTION(cppmethod, geosmethod)               \
     void Geometry::cppmethod(const FunctionCallbackInfo<Value>& args) {         \
         Geometry *geom = ObjectWrap::Unwrap<Geometry>(args.This());             \
@@ -160,6 +161,26 @@
         geos::geom::Geometry* result = geom->_geom->geosmethod(geom2->_geom);   \
         args.GetReturnValue().Set(Geometry::New(result));                       \
     }                                                                           \
+
+#else
+#define NODE_GEOS_UNARY_TOPOLOGIC_FUNCTION(cppmethod, geosmethod)               \
+    void Geometry::cppmethod(const FunctionCallbackInfo<Value>& args) {         \
+        Geometry *geom = ObjectWrap::Unwrap<Geometry>(args.This());             \
+        geos::geom::Geometry* result = geom->_geom->geosmethod().get();         \
+        args.GetReturnValue().Set(Geometry::New(result));                       \
+    }                                                                           \
+
+#define NODE_GEOS_BINARY_TOPOLOGIC_FUNCTION(cppmethod, geosmethod)              \
+    void Geometry::cppmethod(const FunctionCallbackInfo<Value>& args) {         \
+        Geometry *geom = ObjectWrap::Unwrap<Geometry>(args.This());             \
+        Geometry *geom2 = ObjectWrap::Unwrap<Geometry>(args[0]->ToObject());    \
+        geos::geom::Geometry* result = geom->_geom->geosmethod(geom2->_geom).get();\
+        args.GetReturnValue().Set(Geometry::New(result));                       \
+    }                                                                           \
+
+#endif // GEOS_VERSION_MAJOR, GEOS_VERSION_MINOR
+
+
 
 #define NODE_GEOS_DOUBLE_GETTER(cppmethod, geosmethod)                          \
     void Geometry::cppmethod(const FunctionCallbackInfo<Value>& args) {\

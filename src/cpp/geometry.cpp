@@ -165,16 +165,26 @@ void Geometry::Buffer(const FunctionCallbackInfo<Value>& args) {
     Geometry* geom = ObjectWrap::Unwrap<Geometry>(args.This());
     distance = args[0]->NumberValue();
 
+#if GEOS_VERSION_MAJOR == 3 && GEOS_VERSION_MINOR <= 6
+    geos::geom::Geometry* tmpResult;
+#else
+    geos::geom::Geometry::Ptr tmpResult;
+#endif
     if (args.Length() == 1) {
-        result = Geometry::New(geom->_geom->buffer(distance));
+        tmpResult = geom->_geom->buffer(distance);
     } else if (args.Length() == 2) {
         quadrantSegments = args[1]->IntegerValue();
-        result = Geometry::New(geom->_geom->buffer(distance, quadrantSegments));
+        tmpResult = geom->_geom->buffer(distance, quadrantSegments);
     } else {
         quadrantSegments = args[1]->IntegerValue();
         int endCapStyle = args[2]->IntegerValue();
-        result = Geometry::New(geom->_geom->buffer(distance, quadrantSegments, endCapStyle));
+        tmpResult = geom->_geom->buffer(distance, quadrantSegments, endCapStyle);
     }
+#if GEOS_VERSION_MAJOR == 3 && GEOS_VERSION_MINOR <= 6
+    result = Geometry::New(tmpResult);
+#else
+    result = Geometry::New(tmpResult.get());
+#endif
 
     args.GetReturnValue().Set(result);
 }

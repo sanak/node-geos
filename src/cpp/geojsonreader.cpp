@@ -133,7 +133,11 @@ geos::geom::CoordinateSequence* GeoJSONReader::getCoordinates(Handle<Value> valu
     Handle<Array> array = Handle<Array>::Cast(value);
 
     uint32_t length = array->Length();
+#if GEOS_VERSION_MAJOR == 3 && GEOS_VERSION_MINOR <= 6
     geos::geom::CoordinateSequence* sequence = coordinateSequenceFactory->create(length, 3);
+#else
+    geos::geom::CoordinateSequence* sequence = coordinateSequenceFactory->create(length, 3).get();
+#endif
 
     try {
         for (uint32_t i = 0; i < length; i++) {
@@ -253,12 +257,14 @@ geos::geom::Point* GeoJSONReader::getPoint(Handle<Value> coords) {
 geos::geom::LineString* GeoJSONReader::getLineString(Handle<Value> coords) {
 
     if (coords->IsArray()) {
-
         return geometryFactory->createLineString(getCoordinates(coords));
     }
 
-
+#if GEOS_VERSION_MAJOR == 3 && GEOS_VERSION_MINOR <= 6
     return geometryFactory->createLineString();
+#else
+    return geometryFactory->createLineString().get();
+#endif
 }
 
 geos::geom::Polygon* GeoJSONReader::getPolygon(Handle<Value> coords) {
@@ -272,7 +278,7 @@ geos::geom::Polygon* GeoJSONReader::getPolygon(Handle<Value> coords) {
 
         geos::geom::LinearRing* shell = getLinearRing(array->Get(0));
         uint32_t length = array->Length();
-        std::vector<geos::geom::Geometry*>* holes = new std::vector<geos::geom::Geometry*>();
+        std::vector<geos::geom::LinearRing*>* holes = new std::vector<geos::geom::LinearRing*>();
         try {
             for (uint32_t i = 1; i < length; i++) {
                 geos::geom::LinearRing* g = getLinearRing(array->Get(i));
@@ -293,7 +299,11 @@ geos::geom::Polygon* GeoJSONReader::getPolygon(Handle<Value> coords) {
     }
 
 
+#if GEOS_VERSION_MAJOR == 3 && GEOS_VERSION_MINOR <= 6
     return geometryFactory->createPolygon();
+#else
+    return geometryFactory->createPolygon().get();
+#endif
 }
 
 geos::geom::MultiPoint* GeoJSONReader::getMultiPoint(Handle<Value> coords) {
@@ -303,8 +313,11 @@ geos::geom::MultiPoint* GeoJSONReader::getMultiPoint(Handle<Value> coords) {
         return geometryFactory->createMultiPoint(*getCoordinates(coords));
     }
 
-
+#if GEOS_VERSION_MAJOR == 3 && GEOS_VERSION_MINOR <= 6
     return geometryFactory->createMultiPoint();
+#else
+    return geometryFactory->createMultiPoint().get();
+#endif
 }
 
 geos::geom::MultiLineString* GeoJSONReader::getMultiLineString(Handle<Value> coords) {
@@ -333,7 +346,11 @@ geos::geom::MultiLineString* GeoJSONReader::getMultiLineString(Handle<Value> coo
     }
 
 
+#if GEOS_VERSION_MAJOR == 3 && GEOS_VERSION_MINOR <= 6
     return geometryFactory->createMultiLineString();
+#else
+    return geometryFactory->createMultiLineString().get();
+#endif
 }
 
 geos::geom::MultiPolygon* GeoJSONReader::getMultiPolygon(Handle<Value> coords) {
@@ -362,7 +379,11 @@ geos::geom::MultiPolygon* GeoJSONReader::getMultiPolygon(Handle<Value> coords) {
     }
 
 
+#if GEOS_VERSION_MAJOR == 3 && GEOS_VERSION_MINOR <= 6
     return geometryFactory->createMultiPolygon();
+#else
+    return geometryFactory->createMultiPolygon().get();
+#endif
 }
 
 geos::geom::GeometryCollection* GeoJSONReader::getGeometryCollection(Handle<Array> array) {

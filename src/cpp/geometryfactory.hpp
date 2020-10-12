@@ -1,11 +1,12 @@
 #ifndef GEOMETRY_FACTORY_HPP
 #define GEOMETRY_FACTORY_HPP
 
+#include <geos/version.h>
+#include <geos/geom/GeometryFactory.h>
+#include <geos/geom/PrecisionModel.h>
 #include "binding.hpp"
 #include "geometry.hpp"
 #include "precisionmodel.hpp"
-#include "geos/geom/GeometryFactory.h"
-#include "geos/geom/PrecisionModel.h"
 
 class GeometryFactory : public ObjectWrap {
 
