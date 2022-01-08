@@ -9,13 +9,23 @@
 #include "geojsonwriter.hpp"
 #include "geojsonreader.hpp"
 
+static void
+geos_msg_handler(const char* fmt, ...)
+{
+    va_list ap;
+    va_start(ap, fmt);
+    vprintf (fmt, ap);
+    va_end(ap);
+}
+
 extern "C" {
     void init (Handle<Object> target) {
+        initGEOS(geos_msg_handler, geos_msg_handler);
+
         Isolate* isolate = Isolate::GetCurrent();
         HandleScope scope(isolate);
 
-        target->Set(String::NewFromUtf8(isolate, "geosversion"), String::NewFromUtf8(isolate, geos::geom::geosversion().data()));
-        target->Set(String::NewFromUtf8(isolate, "jtsport"), String::NewFromUtf8(isolate, geos::geom::jtsport().data()));
+        target->Set(String::NewFromUtf8(isolate, "geosversion"), String::NewFromUtf8(isolate, GEOSversion()));
 
         Geometry::Initialize(target);
         WKTReader::Initialize(target);

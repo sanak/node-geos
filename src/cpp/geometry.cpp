@@ -2,11 +2,13 @@
 
 Geometry::Geometry() {}
 
-Geometry::Geometry(geos::geom::Geometry *geom) : ObjectWrap() {
+Geometry::Geometry(GEOSGeometry *geom) : ObjectWrap() {
     _geom = geom;
 }
 
-Geometry::~Geometry() {}
+Geometry::~Geometry() {
+    // TODO:
+}
 
 Persistent<Function> Geometry::constructor;
 
@@ -24,7 +26,6 @@ void Geometry::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "isSimple", Geometry::IsSimple);
     NODE_SET_PROTOTYPE_METHOD(tpl, "isValid", Geometry::IsValid);
     NODE_SET_PROTOTYPE_METHOD(tpl, "isEmpty", Geometry::IsEmpty);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "isRectangle", Geometry::IsRectangle);
     //GEOS binary predicates
     //TODO maybe define a macro for this too
     NODE_SET_PROTOTYPE_METHOD(tpl, "disjoint", Geometry::Disjoint);
@@ -97,7 +98,7 @@ void Geometry::ToString(const FunctionCallbackInfo<Value>& args) {
     HandleScope scope(isolate);
 
     Geometry* geom = ObjectWrap::Unwrap<Geometry>(args.This());
-    args.GetReturnValue().Set(String::NewFromUtf8(isolate, geom->_geom->toString().data()));
+    args.GetReturnValue().Set(String::NewFromUtf8(isolate, GEOSGeomToWKT(geom->_geom)));
 }
 
 void Geometry::GetGeometryType(const FunctionCallbackInfo<Value>& args) {
@@ -105,7 +106,7 @@ void Geometry::GetGeometryType(const FunctionCallbackInfo<Value>& args) {
     HandleScope scope(isolate);
 
     Geometry* geom = ObjectWrap::Unwrap<Geometry>(args.This());
-    args.GetReturnValue().Set(String::NewFromUtf8(isolate, geom->_geom->getGeometryType().data()));
+    args.GetReturnValue().Set(String::NewFromUtf8(isolate, GEOSGeomType(geom->_geom)));
 }
 
 void Geometry::Distance(const FunctionCallbackInfo<Value>& args) {
@@ -114,9 +115,10 @@ void Geometry::Distance(const FunctionCallbackInfo<Value>& args) {
 
     Geometry* geom = ObjectWrap::Unwrap<Geometry>(args.This());
     Geometry* geom2 = ObjectWrap::Unwrap<Geometry>(args[0]->ToObject());
-    args.GetReturnValue().Set(Number::New(isolate, geom->_geom->distance(geom2->_geom)));
+    args.GetReturnValue().Set(Number::New(isolate, GEOSDistance(geom->_geom, geom2->_geom)));
 }
 
+/*
 void Geometry::IsWithinDistance(const FunctionCallbackInfo<Value>& args) {
     Isolate* isolate = Isolate::GetCurrent();
     HandleScope scope(isolate);
@@ -128,13 +130,14 @@ void Geometry::IsWithinDistance(const FunctionCallbackInfo<Value>& args) {
       geom->_geom->isWithinDistance(geom2->_geom, distance) ? True(isolate) : False(isolate)
     );
 }
+*/
 
 void Geometry::SetSRID(const FunctionCallbackInfo<Value>& args) {
     Isolate* isolate = Isolate::GetCurrent();
     HandleScope scope(isolate);
 
     Geometry* geom = ObjectWrap::Unwrap<Geometry>(args.This());
-    geom->_geom->setSRID(args[0]->IntegerValue());
+    GEOSSetSRID(geom->_geom, args[0]->IntegerValue());
     args.GetReturnValue().Set(Undefined(isolate));
 }
 
@@ -166,48 +169,47 @@ void Geometry::Buffer(const FunctionCallbackInfo<Value>& args) {
     distance = args[0]->NumberValue();
 
     if (args.Length() == 1) {
-        result = Geometry::New(geom->_geom->buffer(distance));
+        result = Geometry::New(GEOSBuffer(geom->_geom, distance, 8, 1));
     } else if (args.Length() == 2) {
         quadrantSegments = args[1]->IntegerValue();
-        result = Geometry::New(geom->_geom->buffer(distance, quadrantSegments));
+        result = Geometry::New(GEOSBuffer(geom->_geom, distance, quadrantSegments, 1));
     } else {
         quadrantSegments = args[1]->IntegerValue();
         int endCapStyle = args[2]->IntegerValue();
-        result = Geometry::New(geom->_geom->buffer(distance, quadrantSegments, endCapStyle));
+        result = Geometry::New(GEOSBuffer(geom->_geom, distance, quadrantSegments, endCapStyle));
     }
 
     args.GetReturnValue().Set(result);
 }
 
 //GEOS unary predicates
-NODE_GEOS_UNARY_PREDICATE(IsSimple, isSimple);
-NODE_GEOS_UNARY_PREDICATE(IsValid, isValid);
-NODE_GEOS_UNARY_PREDICATE(IsEmpty, isEmpty);
-NODE_GEOS_UNARY_PREDICATE(IsRectangle, isRectangle);
+NODE_GEOS_UNARY_PREDICATE(IsSimple, GEOSisSimple);
+NODE_GEOS_UNARY_PREDICATE(IsValid, GEOSisValid);
+NODE_GEOS_UNARY_PREDICATE(IsEmpty, GEOSisEmpty);
 
 // GEOS binary predicates
-NODE_GEOS_BINARY_PREDICATE(Disjoint, disjoint);
-NODE_GEOS_BINARY_PREDICATE(Touches, touches);
-NODE_GEOS_BINARY_PREDICATE(Intersects, intersects);
-NODE_GEOS_BINARY_PREDICATE(Crosses, crosses);
-NODE_GEOS_BINARY_PREDICATE(Within, within);
-NODE_GEOS_BINARY_PREDICATE(Contains, contains);
-NODE_GEOS_BINARY_PREDICATE(Overlaps, overlaps);
-NODE_GEOS_BINARY_PREDICATE(Equals, equals);
-NODE_GEOS_BINARY_PREDICATE(Covers, covers);
-NODE_GEOS_BINARY_PREDICATE(CoveredBy, coveredBy);
+NODE_GEOS_BINARY_PREDICATE(Disjoint, GEOSDisjoint);
+NODE_GEOS_BINARY_PREDICATE(Touches, GEOSTouches);
+NODE_GEOS_BINARY_PREDICATE(Intersects, GEOSIntersects);
+NODE_GEOS_BINARY_PREDICATE(Crosses, GEOSCrosses);
+NODE_GEOS_BINARY_PREDICATE(Within, GEOSWithin);
+NODE_GEOS_BINARY_PREDICATE(Contains, GEOSContains);
+NODE_GEOS_BINARY_PREDICATE(Overlaps, GEOSOverlaps);
+NODE_GEOS_BINARY_PREDICATE(Equals, GEOSEquals);
+NODE_GEOS_BINARY_PREDICATE(Covers, GEOSCovers);
+NODE_GEOS_BINARY_PREDICATE(CoveredBy, GEOSCoveredBy);
 
 // GEOS unary topologic functions
-NODE_GEOS_UNARY_TOPOLOGIC_FUNCTION(GetEnvelope, getEnvelope);
-NODE_GEOS_UNARY_TOPOLOGIC_FUNCTION(GetBoundary, getBoundary);
-NODE_GEOS_UNARY_TOPOLOGIC_FUNCTION(ConvexHull, convexHull);
+NODE_GEOS_UNARY_TOPOLOGIC_FUNCTION(GetEnvelope, GEOSEnvelope);
+NODE_GEOS_UNARY_TOPOLOGIC_FUNCTION(GetBoundary, GEOSBoundary);
+NODE_GEOS_UNARY_TOPOLOGIC_FUNCTION(ConvexHull, GEOSConvexHull);
 
 // GEOS binary topologic functions
-NODE_GEOS_BINARY_TOPOLOGIC_FUNCTION(Intersection, intersection);
-NODE_GEOS_BINARY_TOPOLOGIC_FUNCTION(Union, Union);
-NODE_GEOS_BINARY_TOPOLOGIC_FUNCTION(Difference, difference);
-NODE_GEOS_BINARY_TOPOLOGIC_FUNCTION(SymDifference, symDifference);
+NODE_GEOS_BINARY_TOPOLOGIC_FUNCTION(Intersection, GEOSntersection);
+NODE_GEOS_BINARY_TOPOLOGIC_FUNCTION(Union, GEOSUnion);
+NODE_GEOS_BINARY_TOPOLOGIC_FUNCTION(Difference, GEOSDifference);
+NODE_GEOS_BINARY_TOPOLOGIC_FUNCTION(SymDifference, GEOSSymDifference);
 
-NODE_GEOS_DOUBLE_GETTER(GetArea, getArea);
-NODE_GEOS_DOUBLE_GETTER(GetLength, getLength);
-NODE_GEOS_DOUBLE_GETTER(GetSRID, getSRID);
+NODE_GEOS_DOUBLE_GETTER(GetArea, GEOSArea);
+NODE_GEOS_DOUBLE_GETTER(GetLength, GEOSLength);
+NODE_GEOS_DOUBLE_GETTER(GetSRID, GEOSGetSRID);

@@ -2,8 +2,8 @@
 #define GEOMETRY_HPP
 
 #include <uv.h>
-#include <geos/geom/Geometry.h>
-#include <geos/util/GEOSException.h>
+#include <geos_c.h>
+#include <stdexcept.h>
 #include "binding.hpp"
 #include "geojsonwriter.hpp"
 
@@ -14,12 +14,12 @@
         bool result;                                                                    \
     } geosmethod##_baton_t;                                                             \
                                                                                         \
-    void Geometry::cppmethod##Async(uv_work_t *req) {                                    \
+    void Geometry::cppmethod##Async(uv_work_t *req) {                                   \
         geosmethod##_baton_t *closure = static_cast<geosmethod##_baton_t *>(req->data); \
-        closure->result = closure->geom->_geom->geosmethod();                           \
+        closure->result = geosmethod(closure->geom->_geom);                             \
     }                                                                                   \
                                                                                         \
-    void Geometry::cppmethod##AsyncComplete(uv_work_t *req, int status) {                   \
+    void Geometry::cppmethod##AsyncComplete(uv_work_t *req, int status) {               \
         Isolate* isolate = Isolate::GetCurrent();                                       \
         HandleScope scope(isolate);                                                     \
                                                                                         \
@@ -61,10 +61,10 @@
         } else {                                                                        \
             try {                                                                       \
                 args.GetReturnValue().Set(                                              \
-                  geom->_geom->geosmethod() ? True(isolate) : False(isolate)            \
+                  geosmethod(geom->_geom) ? True(isolate) : False(isolate)              \
                 );                                                                      \
                 return;                                                                 \
-            } catch(geos::util::GEOSException exception) {                              \
+            } catch(const std::exception &exception) {                                  \
                 isolate->ThrowException(                                                \
                   Exception::Error(String::NewFromUtf8(isolate, exception.what()))      \
                 );                                                                      \
@@ -82,12 +82,12 @@
         bool result;                                                                    \
     } geosmethod##_baton_t;                                                             \
                                                                                         \
-    void Geometry::cppmethod##Async(uv_work_t *req) {                                    \
+    void Geometry::cppmethod##Async(uv_work_t *req) {                                   \
         geosmethod##_baton_t *closure = static_cast<geosmethod##_baton_t *>(req->data); \
-        closure->result = closure->geom->_geom->geosmethod(closure->geom2->_geom);      \
+        closure->result = geosmethod(closure->geom->_geom, closure->geom2->_geom);      \
     }                                                                                   \
                                                                                         \
-    void Geometry::cppmethod##AsyncComplete(uv_work_t *req, int status) {                   \
+    void Geometry::cppmethod##AsyncComplete(uv_work_t *req, int status) {               \
         Isolate* isolate = Isolate::GetCurrent();                                       \
         HandleScope scope(isolate);                                                     \
                                                                                         \
@@ -133,10 +133,10 @@
         } else {                                                                        \
             try {                                                                       \
                 args.GetReturnValue().Set(                                              \
-                  geom->_geom->geosmethod(geom2->_geom) ? True(isolate) : False(isolate)\
+                  geosmethod(geom->_geom, geom2->_geom) ? True(isolate) : False(isolate)\
                 );                                                                      \
                 return;                                                                 \
-            } catch(geos::util::GEOSException exception) {                              \
+            } catch(const std::exception& exception) {                                  \
                 isolate->ThrowException(                                                \
                   Exception::Error(String::NewFromUtf8(isolate, exception.what()))      \
                 );                                                                      \
@@ -149,7 +149,7 @@
 #define NODE_GEOS_UNARY_TOPOLOGIC_FUNCTION(cppmethod, geosmethod)               \
     void Geometry::cppmethod(const FunctionCallbackInfo<Value>& args) {         \
         Geometry *geom = ObjectWrap::Unwrap<Geometry>(args.This());             \
-        geos::geom::Geometry* result = geom->_geom->geosmethod();               \
+        GEOSGeometry* result = geom->_geom->geosmethod();                       \
         args.GetReturnValue().Set(Geometry::New(result));                       \
     }                                                                           \
 
@@ -157,14 +157,14 @@
     void Geometry::cppmethod(const FunctionCallbackInfo<Value>& args) {         \
         Geometry *geom = ObjectWrap::Unwrap<Geometry>(args.This());             \
         Geometry *geom2 = ObjectWrap::Unwrap<Geometry>(args[0]->ToObject());    \
-        geos::geom::Geometry* result = geom->_geom->geosmethod(geom2->_geom);   \
+        GEOSGeometry* result = geosmethod(geom->_geom, geom2->_geom);           \
         args.GetReturnValue().Set(Geometry::New(result));                       \
     }                                                                           \
 
 #define NODE_GEOS_DOUBLE_GETTER(cppmethod, geosmethod)                          \
     void Geometry::cppmethod(const FunctionCallbackInfo<Value>& args) {\
         Geometry *geom = ObjectWrap::Unwrap<Geometry>(args.This());             \
-        args.GetReturnValue().Set(geom->_geom->geosmethod());                   \
+        args.GetReturnValue().Set(geosmethod(geom->_geom));                     \
     }                                                                           \
 
 #define NODE_GEOS_V8_FUNCTION(cppmethod) \
@@ -174,12 +174,12 @@
 
 class Geometry : public ObjectWrap {
  public:
-    geos::geom::Geometry *_geom;
+    GEOSGeometry *_geom;
     Geometry();
-    Geometry(geos::geom::Geometry *geom);
+    Geometry(GEOSGeometry *geom);
     ~Geometry();
     static void Initialize(Handle<Object> target);
-    static Handle<Value> New(geos::geom::Geometry* geometry);
+    static Handle<Value> New(GEOSGeometry* geometry);
 
     void _ref() { Ref(); };
     void _unref() { Unref(); };
@@ -205,7 +205,7 @@ class Geometry : public ObjectWrap {
     NODE_GEOS_V8_FUNCTION(CoveredBy);
 
     //static void EqualsExact(const FunctionCallbackInfo<Value>& args);
-    static void IsWithinDistance(const FunctionCallbackInfo<Value>& args);
+    //static void IsWithinDistance(const FunctionCallbackInfo<Value>& args);
 
     // GEOS topologic function
     static void Intersection(const FunctionCallbackInfo<Value>& args);
