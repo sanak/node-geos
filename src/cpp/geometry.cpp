@@ -39,7 +39,7 @@ void Geometry::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "covers", Geometry::Covers);
     NODE_SET_PROTOTYPE_METHOD(tpl, "coveredBy", Geometry::CoveredBy);
 
-    NODE_SET_PROTOTYPE_METHOD(tpl, "isWithinDistance", Geometry::IsWithinDistance);
+//    NODE_SET_PROTOTYPE_METHOD(tpl, "isWithinDistance", Geometry::IsWithinDistance);
 
     //GEOS binary topologic functions
     NODE_SET_PROTOTYPE_METHOD(tpl, "intersection", Geometry::Intersection);
@@ -63,14 +63,14 @@ void Geometry::Initialize(Handle<Object> target) {
 
     NODE_SET_PROTOTYPE_METHOD(tpl, "getGeometryType", Geometry::GetGeometryType);
 
-    NODE_SET_PROTOTYPE_METHOD(tpl, "toJSON", Geometry::ToJSON);
+//    NODE_SET_PROTOTYPE_METHOD(tpl, "toJSON", Geometry::ToJSON);
 
     constructor.Reset(isolate, tpl->GetFunction());
 
     target->Set(String::NewFromUtf8(isolate, "Geometry"), tpl->GetFunction());
 }
 
-Handle<Value> Geometry::New(geos::geom::Geometry *geometry) {
+Handle<Value> Geometry::New(GEOSGeometry *geometry) {
     Isolate* isolate = Isolate::GetCurrent();
     HandleScope scope(isolate);
 
@@ -115,7 +115,10 @@ void Geometry::Distance(const FunctionCallbackInfo<Value>& args) {
 
     Geometry* geom = ObjectWrap::Unwrap<Geometry>(args.This());
     Geometry* geom2 = ObjectWrap::Unwrap<Geometry>(args[0]->ToObject());
-    args.GetReturnValue().Set(Number::New(isolate, GEOSDistance(geom->_geom, geom2->_geom)));
+    double value = 0;
+    int ret = GEOSDistance(geom->_geom, geom2->_geom, &value);
+    // TODO: check ret
+    args.GetReturnValue().Set(Number::New(isolate, value));
 }
 
 /*
@@ -141,6 +144,7 @@ void Geometry::SetSRID(const FunctionCallbackInfo<Value>& args) {
     args.GetReturnValue().Set(Undefined(isolate));
 }
 
+/*
 void Geometry::ToJSON(const FunctionCallbackInfo<Value>& args) {
     Isolate* isolate = Isolate::GetCurrent();
     HandleScope scope(isolate);
@@ -156,6 +160,7 @@ void Geometry::ToJSON(const FunctionCallbackInfo<Value>& args) {
     Handle<Value> json = writer.write(geom->_geom);
     args.GetReturnValue().Set(json);
 }
+*/
 
 void Geometry::Buffer(const FunctionCallbackInfo<Value>& args) {
     Isolate* isolate = Isolate::GetCurrent();
@@ -169,15 +174,19 @@ void Geometry::Buffer(const FunctionCallbackInfo<Value>& args) {
     distance = args[0]->NumberValue();
 
     if (args.Length() == 1) {
-        result = Geometry::New(GEOSBuffer(geom->_geom, distance, 8, 1));
+        result = Geometry::New(GEOSBuffer(geom->_geom, distance, 8));
     } else if (args.Length() == 2) {
         quadrantSegments = args[1]->IntegerValue();
-        result = Geometry::New(GEOSBuffer(geom->_geom, distance, quadrantSegments, 1));
-    } else {
+        result = Geometry::New(GEOSBuffer(geom->_geom, distance, quadrantSegments));
+    }
+    /*
+     * TODO:
+    else {
         quadrantSegments = args[1]->IntegerValue();
         int endCapStyle = args[2]->IntegerValue();
-        result = Geometry::New(GEOSBuffer(geom->_geom, distance, quadrantSegments, endCapStyle));
+        result = Geometry::New(GEOSBufferWithStyle(geom->_geom, distance, quadrantSegments, endCapStyle));
     }
+    */
 
     args.GetReturnValue().Set(result);
 }
@@ -205,11 +214,11 @@ NODE_GEOS_UNARY_TOPOLOGIC_FUNCTION(GetBoundary, GEOSBoundary);
 NODE_GEOS_UNARY_TOPOLOGIC_FUNCTION(ConvexHull, GEOSConvexHull);
 
 // GEOS binary topologic functions
-NODE_GEOS_BINARY_TOPOLOGIC_FUNCTION(Intersection, GEOSntersection);
+NODE_GEOS_BINARY_TOPOLOGIC_FUNCTION(Intersection, GEOSIntersection);
 NODE_GEOS_BINARY_TOPOLOGIC_FUNCTION(Union, GEOSUnion);
 NODE_GEOS_BINARY_TOPOLOGIC_FUNCTION(Difference, GEOSDifference);
 NODE_GEOS_BINARY_TOPOLOGIC_FUNCTION(SymDifference, GEOSSymDifference);
 
-NODE_GEOS_DOUBLE_GETTER(GetArea, GEOSArea);
-NODE_GEOS_DOUBLE_GETTER(GetLength, GEOSLength);
-NODE_GEOS_DOUBLE_GETTER(GetSRID, GEOSGetSRID);
+NODE_GEOS_DOUBLE_REF_GETTER(GetArea, GEOSArea);
+NODE_GEOS_DOUBLE_REF_GETTER(GetLength, GEOSLength);
+NODE_GEOS_INT_GETTER(GetSRID, GEOSGetSRID);

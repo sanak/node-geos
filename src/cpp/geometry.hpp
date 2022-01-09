@@ -3,7 +3,7 @@
 
 #include <uv.h>
 #include <geos_c.h>
-#include <stdexcept.h>
+#include <stdexcept>
 #include "binding.hpp"
 #include "geojsonwriter.hpp"
 
@@ -28,13 +28,8 @@
         Local<Value> argv[2] = { Null(isolate),                                         \
             closure->result ? True(isolate) : False(isolate)                            \
         };                                                                              \
-        TryCatch tryCatch;                                                              \
         Local<Function> local_callback = Local<Function>::New(isolate, closure->cb);    \
         local_callback->Call(isolate->GetCurrentContext()->Global(), 2, argv);          \
-                                                                                        \
-        if(tryCatch.HasCaught()) {                                                      \
-            FatalException(isolate, tryCatch);                                          \
-        }                                                                               \
                                                                                         \
         closure->cb.Reset();                                                            \
         closure->geom->Unref();                                                         \
@@ -96,13 +91,8 @@
         Local<Value> argv[2] = {                                                        \
             Null(isolate), closure->result ? True(isolate) : False(isolate)             \
         };                                                                              \
-        TryCatch tryCatch;                                                              \
         Local<Function> local_callback = Local<Function>::New(isolate, closure->cb);    \
         local_callback->Call(isolate->GetCurrentContext()->Global(), 2, argv);          \
-                                                                                        \
-        if(tryCatch.HasCaught()) {                                                      \
-            FatalException(isolate, tryCatch);                                          \
-        }                                                                               \
                                                                                         \
         closure->cb.Reset();                                                            \
         closure->geom->Unref();                                                         \
@@ -149,7 +139,7 @@
 #define NODE_GEOS_UNARY_TOPOLOGIC_FUNCTION(cppmethod, geosmethod)               \
     void Geometry::cppmethod(const FunctionCallbackInfo<Value>& args) {         \
         Geometry *geom = ObjectWrap::Unwrap<Geometry>(args.This());             \
-        GEOSGeometry* result = geom->_geom->geosmethod();                       \
+        GEOSGeometry* result = geosmethod(geom->_geom);                         \
         args.GetReturnValue().Set(Geometry::New(result));                       \
     }                                                                           \
 
@@ -161,8 +151,16 @@
         args.GetReturnValue().Set(Geometry::New(result));                       \
     }                                                                           \
 
-#define NODE_GEOS_DOUBLE_GETTER(cppmethod, geosmethod)                          \
-    void Geometry::cppmethod(const FunctionCallbackInfo<Value>& args) {\
+#define NODE_GEOS_DOUBLE_REF_GETTER(cppmethod, geosmethod)                      \
+    void Geometry::cppmethod(const FunctionCallbackInfo<Value>& args) {         \
+        Geometry *geom = ObjectWrap::Unwrap<Geometry>(args.This());             \
+        double value = 0;                                                       \
+        int ret = geosmethod(geom->_geom, &value);                              \
+        args.GetReturnValue().Set(value);                                       \
+    }                                                                           \
+
+#define NODE_GEOS_INT_GETTER(cppmethod, geosmethod)                             \
+    void Geometry::cppmethod(const FunctionCallbackInfo<Value>& args) {         \
         Geometry *geom = ObjectWrap::Unwrap<Geometry>(args.This());             \
         args.GetReturnValue().Set(geosmethod(geom->_geom));                     \
     }                                                                           \
@@ -229,7 +227,7 @@ class Geometry : public ObjectWrap {
 
     static void GetGeometryType(const FunctionCallbackInfo<Value>& args);
 
-    static void ToJSON(const FunctionCallbackInfo<Value>& args);
+//    static void ToJSON(const FunctionCallbackInfo<Value>& args);
 
  private:
     static Persistent<Function> constructor;

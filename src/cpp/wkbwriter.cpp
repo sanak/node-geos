@@ -1,10 +1,15 @@
 #include "wkbwriter.hpp"
 
 WKBWriter::WKBWriter() {
-    _writer = new geos::io::WKBWriter();
+    _writer = GEOSWKBWriter_create();
 }
 
-WKBWriter::~WKBWriter() {}
+WKBWriter::~WKBWriter() {
+    if (_writer) {
+        GEOSWKBWriter_destroy(_writer);
+        _writer = NULL;
+    }
+}
 
 Persistent<Function> WKBWriter::constructor;
 
@@ -39,7 +44,8 @@ void WKBWriter::WriteHEX(const FunctionCallbackInfo<Value>& args) {
     WKBWriter *writer = ObjectWrap::Unwrap<WKBWriter>(args.This());
     Geometry *geom = ObjectWrap::Unwrap<Geometry>(args[0]->ToObject());
     //TODO catch exception?
-    std::stringstream ss;
-    writer->_writer->writeHEX(*geom->_geom, ss);
-    args.GetReturnValue().Set(String::NewFromUtf8(isolate, ss.str().c_str()));
+    size_t size = 0;
+    unsigned char* ret = GEOSWKBWriter_writeHEX(writer->_writer, geom->_geom, &size);
+    args.GetReturnValue().Set(String::NewFromUtf8(isolate, reinterpret_cast<const char*>(ret)));
+    // TODO:
 }

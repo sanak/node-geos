@@ -2,14 +2,15 @@
 #include <sstream>
 
 WKBReader::WKBReader() {
-    _reader = new geos::io::WKBReader();
+    _reader = GEOSWKBReader_create();
 }
 
-WKBReader::WKBReader(const geos::geom::GeometryFactory *gf) {
-    _reader = new geos::io::WKBReader(*gf);
+WKBReader::~WKBReader() {
+    if (_reader) {
+        GEOSWKBReader_destroy(_reader);
+        _reader = NULL;
+    }
 }
-
-WKBReader::~WKBReader() {}
 
 Persistent<Function> WKBReader::constructor;
 
@@ -34,15 +35,7 @@ void WKBReader::New(const FunctionCallbackInfo<Value>& args)
     Isolate* isolate = Isolate::GetCurrent();
     HandleScope scope(isolate);
 
-    WKBReader *wkbReader;
-
-    if(args.Length() == 1) {
-        GeometryFactory *factory = ObjectWrap::Unwrap<GeometryFactory>(args[0]->ToObject());
-        wkbReader = new WKBReader(factory->_factory);
-    } else {
-        wkbReader = new WKBReader();
-    }
-
+    WKBReader *wkbReader = new WKBReader();
     wkbReader->Wrap(args.This());
     args.GetReturnValue().Set(args.This());
 }
@@ -55,14 +48,10 @@ void WKBReader::ReadHEX(const FunctionCallbackInfo<Value>& args)
     WKBReader* reader = ObjectWrap::Unwrap<WKBReader>(args.This());
     String::Utf8Value hex(args[0]->ToString());
     std::string str = std::string(*hex);
-    std::istringstream is( str );
+//    std::istringstream is( str );
     try {
-        geos::geom::Geometry* geom = reader->_reader->readHEX(is);
+        GEOSGeometry* geom = GEOSWKBReader_readHEX(reader->_reader, reinterpret_cast<const unsigned char *>(str.c_str()), str.length());
         args.GetReturnValue().Set(Geometry::New(geom));
-    } catch (geos::io::ParseException e) {
-        isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, e.what())));
-    } catch (geos::util::GEOSException e) {
-        isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, e.what())));
     } catch (...) {
         isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, "Exception while reading WKB.")));
     }

@@ -11,7 +11,7 @@ For the The GeoJSON Format Specification see http://geojson.org/geojson-spec.htm
 - 2/3-dimensional coordinates are supported.
 */
 
-
+/*
 #ifndef GEOJSONREADER_HPP
 #define GEOJSONREADER_HPP
 
@@ -24,7 +24,6 @@ For the The GeoJSON Format Specification see http://geojson.org/geojson-spec.htm
 #include <geos/geom/PrecisionModel.h>
 #include "binding.hpp"
 #include "geometry.hpp"
-#include "geometryfactory.hpp"
 
 class GeoJSONReader : public ObjectWrap {
 
@@ -66,3 +65,4 @@ class GeoJSONReader : public ObjectWrap {
 };
 
 #endif
+*/

@@ -1,3 +1,4 @@
+/*
 #include "geojsonreader.hpp"
 
 Persistent<Function> GeoJSONReader::constructor;
@@ -386,3 +387,4 @@ geos::geom::GeometryCollection* GeoJSONReader::getGeometryCollection(Handle<Arra
 
     return geometryFactory->createGeometryCollection(geoms);
 }
+*/

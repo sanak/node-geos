@@ -1,10 +1,15 @@
 #include "wktwriter.hpp"
 
 WKTWriter::WKTWriter() {
-    _writer = new geos::io::WKTWriter();
+    _writer = GEOSWKTWriter_create();
 }
 
-WKTWriter::~WKTWriter() {}
+WKTWriter::~WKTWriter() {
+    if (_writer) {
+        GEOSWKTWriter_destroy(_writer);
+        _writer = NULL;
+    }
+}
 
 Persistent<Function> WKTWriter::constructor;
 
@@ -42,8 +47,8 @@ void WKTWriter::Write(const FunctionCallbackInfo<Value>& args) {
     WKTWriter *writer = ObjectWrap::Unwrap<WKTWriter>(args.This());
     Geometry *geom = ObjectWrap::Unwrap<Geometry>(args[0]->ToObject());
     //TODO catch exception?
-    std::string str = writer->_writer->write(geom->_geom);
-    args.GetReturnValue().Set(String::NewFromUtf8(isolate, str.data()));
+    char *ret = GEOSWKTWriter_write(writer->_writer, geom->_geom);
+    args.GetReturnValue().Set(String::NewFromUtf8(isolate, ret));
 }
 
 void WKTWriter::SetRoundingPrecision(const FunctionCallbackInfo<Value>& args) {
@@ -51,7 +56,7 @@ void WKTWriter::SetRoundingPrecision(const FunctionCallbackInfo<Value>& args) {
     HandleScope scope(isolate);
 
     WKTWriter *writer = ObjectWrap::Unwrap<WKTWriter>(args.This());
-    writer->_writer->setRoundingPrecision(args[0]->Int32Value());
+    GEOSWKTWriter_setRoundingPrecision(writer->_writer, args[0]->Int32Value());
     args.GetReturnValue().Set(Undefined(isolate));
 }
 
@@ -60,6 +65,6 @@ void WKTWriter::SetTrim(const FunctionCallbackInfo<Value>& args) {
     HandleScope scope(isolate);
 
     WKTWriter *writer = ObjectWrap::Unwrap<WKTWriter>(args.This());
-    writer->_writer->setTrim(args[0]->BooleanValue());
+    GEOSWKTWriter_setTrim(writer->_writer, args[0]->BooleanValue());
     args.GetReturnValue().Set(Undefined(isolate));
 }

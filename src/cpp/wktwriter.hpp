@@ -1,7 +1,7 @@
 #ifndef WKTWRITER_HPP
 #define WKTWRITER_HPP
 
-#include <geos/io/WKTWriter.h>
+#include <geos_c.h>
 #include "binding.hpp"
 #include "geometry.hpp"
 
@@ -20,7 +20,7 @@ class WKTWriter : public ObjectWrap {
         static void SetTrim(const FunctionCallbackInfo<Value>& args);
 
     private:
-        geos::io::WKTWriter* _writer;
+        GEOSWKTWriter* _writer;
 
 };
 #endif

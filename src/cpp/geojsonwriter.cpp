@@ -1,3 +1,4 @@
+/*
 #include "geojsonwriter.hpp"
 
 Persistent<Function> GeoJSONWriter::constructor;
@@ -249,3 +250,4 @@ Handle<Value> GeoJSONWriter::write(const geos::geom::Geometry* geom) {
 
     return object;
 }
+*/

@@ -2,7 +2,7 @@
 #define WKBWRITER_HPP
 
 #include <sstream>
-#include <geos/io/WKBWriter.h>
+#include <geos_c.h>
 #include "binding.hpp"
 #include "geometry.hpp"
 
@@ -19,7 +19,7 @@ class WKBWriter : public ObjectWrap {
     protected:
 
     private:
-        geos::io::WKBWriter* _writer;
+        GEOSWKBWriter* _writer;
 
 };
 #endif

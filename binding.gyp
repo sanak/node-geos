@@ -10,7 +10,6 @@
         "src/cpp/wktwriter.cpp",
         "src/cpp/wkbwriter.cpp",
         "src/cpp/geometryfactory.cpp",
-        "src/cpp/precisionmodel.cpp",
         "src/cpp/geojsonwriter.cpp",
         "src/cpp/geojsonreader.cpp"
       ],
@@ -21,12 +20,12 @@
           # no Windows support yet...
         }, {
           'libraries': [
-            '<!@(geos-config --libs)'
+            '<!@(geos-config --clibs)'
           ],
         }],
         ['OS=="mac"', {
           'xcode_settings': {
-            'MACOSX_DEPLOYMENT_TARGET': '10.8',
+            'MACOSX_DEPLOYMENT_TARGET': '11.0',
             'GCC_ENABLE_CPP_EXCEPTIONS': 'YES',
             'GCC_ENABLE_CPP_RTTI': 'YES',
             'OTHER_CFLAGS': [
@@ -34,6 +33,9 @@
             ]
           }
         }, {
+          'libraries': [
+            '<!@(geos-config --clibs)'
+          ],
           'cflags': [
             '<!@(geos-config --cflags)'
           ],

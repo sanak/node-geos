@@ -10,6 +10,7 @@ For the The GeoJSON Format Specification see http://geojson.org/geojson-spec.htm
 - 2/3-dimensional coordinates are supported.
 */
 
+/*
 #ifndef GEOJSONWRITER_HPP
 #define GEOJSONWRITER_HPP
 
@@ -61,3 +62,4 @@ class GeoJSONWriter : public ObjectWrap {
 };
 
 #endif
+*/
