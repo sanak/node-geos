@@ -39,7 +39,7 @@ void Geometry::Initialize(Handle<Object> target) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "covers", Geometry::Covers);
     NODE_SET_PROTOTYPE_METHOD(tpl, "coveredBy", Geometry::CoveredBy);
 
-//    NODE_SET_PROTOTYPE_METHOD(tpl, "isWithinDistance", Geometry::IsWithinDistance);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "distanceWithin", Geometry::DistanceWithin);
 
     //GEOS binary topologic functions
     NODE_SET_PROTOTYPE_METHOD(tpl, "intersection", Geometry::Intersection);
@@ -121,8 +121,7 @@ void Geometry::Distance(const FunctionCallbackInfo<Value>& args) {
     args.GetReturnValue().Set(Number::New(isolate, value));
 }
 
-/*
-void Geometry::IsWithinDistance(const FunctionCallbackInfo<Value>& args) {
+void Geometry::DistanceWithin(const FunctionCallbackInfo<Value>& args) {
     Isolate* isolate = Isolate::GetCurrent();
     HandleScope scope(isolate);
 
@@ -130,10 +129,9 @@ void Geometry::IsWithinDistance(const FunctionCallbackInfo<Value>& args) {
     Geometry* geom2 = ObjectWrap::Unwrap<Geometry>(args[0]->ToObject());
     double distance = args[0]->NumberValue();
     args.GetReturnValue().Set(
-      geom->_geom->isWithinDistance(geom2->_geom, distance) ? True(isolate) : False(isolate)
+        GEOSDistanceWithin(geom->_geom, geom2->_geom, distance) ? True(isolate) : False(isolate)
     );
 }
-*/
 
 void Geometry::SetSRID(const FunctionCallbackInfo<Value>& args) {
     Isolate* isolate = Isolate::GetCurrent();

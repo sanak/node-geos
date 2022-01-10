@@ -203,7 +203,7 @@ class Geometry : public ObjectWrap {
     NODE_GEOS_V8_FUNCTION(CoveredBy);
 
     //static void EqualsExact(const FunctionCallbackInfo<Value>& args);
-    //static void IsWithinDistance(const FunctionCallbackInfo<Value>& args);
+    static void DistanceWithin(const FunctionCallbackInfo<Value>& args);
 
     // GEOS topologic function
     static void Intersection(const FunctionCallbackInfo<Value>& args);

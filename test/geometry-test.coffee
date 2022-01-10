@@ -156,9 +156,9 @@ tests = (vows.describe "Geometry").addBatch
       assert.isFunction geom.distance
       assert.equal (geom.distance geom), 0
 
-#    "should have a isWithinDistance": (geom) ->
-#      assert.isFunction geom.isWithinDistance
-#      assert.ok geom.isWithinDistance geom, 10
+    "should have a distanceWithin function": (geom) ->
+      assert.isFunction geom.distanceWithin
+      assert.ok geom.distanceWithin geom, 10
 
     "should have a getEnvelope function": (geom) ->
       assert.isFunction geom.getEnvelope
